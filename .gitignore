@@ -1,0 +1,6 @@
+*.pth
+
+*.zip
+
+cars_train/
+cars_test/
