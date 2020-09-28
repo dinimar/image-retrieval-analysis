@@ -216,7 +216,7 @@ class ResNet(nn.Module):
         x1 = x.reshape(x.size(0), -1)
         x = self.fc(x1)
 
-        return x,x1
+        return x1
 
 
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):
