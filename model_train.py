@@ -68,7 +68,7 @@ class Model:
                 )
             if val_loss < best_loss:
                 best_loss = val_loss
-                torch.save('classifer.pth')
+                torch.save(self.model, 'classifer.pth')
             print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}')
             self.scheduler.step(val_loss)
         
