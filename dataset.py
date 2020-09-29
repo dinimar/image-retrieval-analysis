@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset
+from torchvision import transforms
 from torch import nn
 from PIL import Image
 import pandas as pd
@@ -20,7 +21,6 @@ class ClassifierDataset(Dataset):
         self.data = pd.read_csv(csv_file, names=['filename', 'label'])[:-1]
         self.root_dir = root_dir
         self.transform = transform
-        self.m_transformations = m_transformations
 
     def __len__(self):
         return len(self.data)
@@ -43,5 +43,11 @@ class ClassifierDataset(Dataset):
             try:
                 sample['image'] = self.transform(sample['image'])
             except:
-                sample['image'] = self.m_transform(sample['image'])
+                transforma = transforms.Compose([
+                    transforms.Resize(255),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                ])
+                sample['image'] = transform(sample['image'])
         return sample
