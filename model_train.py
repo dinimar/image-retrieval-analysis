@@ -75,6 +75,11 @@ class Model:
     
 def create_dataloader(csv_file, root_dir, num_classes=2):
     transformations = transforms.Compose([
+        transforms.ColorJitter(brightness=(0, 1), contrast=(0, 1), saturation=0, hue=(-0.5, 0.5)),
+        transforms.RandomAffine((-10, 10), scale=(0.5 ,1)),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation((-10, 10)),
         transforms.Resize(255),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
