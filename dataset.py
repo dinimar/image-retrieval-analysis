@@ -33,7 +33,7 @@ class ClassifierDataset(Dataset):
 
         img_name = os.path.join(self.root_dir,
                                 self.data.iloc[idx, 0])
-        image = Image.open(img_name)
+        image = Image.open(img_name).convert('RGB')
         cls = self.data.iloc[idx, 1:]
         cls = int(cls)
         label = self.one_hot_encoder(cls)
