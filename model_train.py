@@ -22,10 +22,9 @@ class FineTuneModel(nn.Module):
         return y
     
 class Model:
-    def __init__(self, model, num_classes=2, device='cuda:0'):
+    def __init__(self, model, device='cuda:0'):
         self.model = model.to(device)
         self.device = device
-        self.num_classes = num_classes
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.05)
         self.criterion= nn.BCEWithLogitsLoss(reduction='mean')
         self.scheduler = ReduceLROnPlateau(
@@ -35,15 +34,11 @@ class Model:
             verbose=True,
             mode='max',
         )
-        
-    def one_hot_encoder(self, num_class):
-        return nn.functional.one_hot(torch.tensor(num_class),self.num_classes).numpy()
     
     def _step(self, data_loader, is_train=False):
         losses = []
         for batch in data_loader:
-            img, labels = batch
-            labels = torch.tensor([self.one_hot_encoder(label) for label in labels.numpy()])
+            img, labels = batch.values()
             img, labels= (
                 img.to(self.device),
                 labels.to(self.device),
@@ -76,7 +71,7 @@ class Model:
             self.scheduler.step(val_loss)
         
     
-def create_dataloader(root='../train_data/'):
+def create_dataloader(csv_file, root_dir, num_classes=2):
     transformations = transforms.Compose([
         transforms.Resize(255),
         transforms.CenterCrop(224),
@@ -84,15 +79,30 @@ def create_dataloader(root='../train_data/'):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    train_data = torchvision.datasets.ImageFolder(root=root, transform=transformations)
+    train_data = ClassifierDataset(
+        csv_file=csv_file,
+        root_dir=root_dir,
+        num_classes=num_classes,
+        transform=transformations
+    )
     len_train_dataset = int(len(train_data) * 0.8)
     train_set, val_set = torch.utils.data.random_split(train_data, [len_train_dataset, len(train_data)-len_train_dataset])
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=4, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=8)
     return train_loader, val_loader
 
-train_loader, val_loader = create_dataloader()
-model = torchvision.models.resnext50_32x4d(pretrained=True)
-model= FineTuneModel(model, num_classes=3097)
-model = Model(model=model)
-model.train(train_loader, val_loader) 
+
+if __name__ == "__main__":
+    num_classes=2
+    csv_file='./mnist_sample/labels.csv'
+    root_dir='./mnist_sample'
+
+    train_loader, val_loader = create_dataloader(
+        csv_file=csv_file,
+        root_dir=root_dir,
+        num_classes=num_classes
+    )
+    model = torchvision.models.resnext50_32x4d(pretrained=True)
+    model= FineTuneModel(model, num_classes=num_classes)
+    model = Model(model=model)
+    model.train(train_loader, val_loader) 
