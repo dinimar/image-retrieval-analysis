@@ -5,6 +5,8 @@ import torch
 import numpy as np
 from torchvision import transforms
 
+from dataset import ClassifierDataset
+
 class FineTuneModel(nn.Module):
     def __init__(self, original_model, num_classes):
         super(FineTuneModel, self).__init__()
