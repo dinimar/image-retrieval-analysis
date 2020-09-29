@@ -93,6 +93,6 @@ def create_dataloader(root='../train_data/'):
 
 train_loader, val_loader = create_dataloader()
 model = torchvision.models.resnext50_32x4d(pretrained=True)
-model= FineTuneModel(model, num_classes=2)
+model= FineTuneModel(model, num_classes=3097)
 model = Model(model=model)
 model.train(train_loader, val_loader) 
