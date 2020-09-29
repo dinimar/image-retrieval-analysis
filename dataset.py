@@ -43,7 +43,7 @@ class ClassifierDataset(Dataset):
             try:
                 sample['image'] = self.transform(sample['image'])
             except:
-                transforma = transforms.Compose([
+                transform = transforms.Compose([
                     transforms.Resize(255),
                     transforms.CenterCrop(224),
                     transforms.ToTensor(),
