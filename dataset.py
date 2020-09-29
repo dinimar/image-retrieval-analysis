@@ -6,8 +6,6 @@ import torch
 import os
 
 class ClassifierDataset(Dataset):
-    """Face Landmarks dataset."""
-
     def __init__(self, csv_file, root_dir, num_classes=2, transform=None):
         """
         Args:
