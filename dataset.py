@@ -6,7 +6,9 @@ import torch
 import os
 
 class ClassifierDataset(Dataset):
-    def __init__(self, csv_file, root_dir, num_classes=2, transform=None):
+    """Face Landmarks dataset."""
+
+    def __init__(self, csv_file, root_dir, num_classes=2, transform=None, m_transformations=None):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -18,6 +20,7 @@ class ClassifierDataset(Dataset):
         self.data = pd.read_csv(csv_file, names=['filename', 'label'])[:-1]
         self.root_dir = root_dir
         self.transform = transform
+        self.m_transformations = m_transformations
 
     def __len__(self):
         return len(self.data)
@@ -36,7 +39,9 @@ class ClassifierDataset(Dataset):
         cls = int(cls)
         label = self.one_hot_encoder(cls)
         sample = {'image': image, 'landmarks': label}
-
         if self.transform:
-            sample['image'] = self.transform(sample['image'])
+            try:
+                sample['image'] = self.transform(sample['image'])
+            except:
+                sample['image'] = self.m_transform(sample['image'])
         return sample
