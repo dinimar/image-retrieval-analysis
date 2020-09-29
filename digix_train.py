@@ -13,6 +13,10 @@ from FixRes.imnet_extract.resnext_wsl import resnext101_32x48d_wsl
 import csv
 import datetime
 from PIL import Image
+from PIL import ImageFile
+import albumentations as A
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class DIGIXNet(nn.Module):
     def __init__(self):
@@ -36,14 +40,23 @@ if torch.cuda.is_available():
 
 
 def image_loader(filename):
-    input_image = Image.open(filename)
+    input_image = Image.open(filename).convert('RGB')
+
+    aug = A.Compose([
+        A.RandomCrop(width=256, height=256),
+        A.HorizontalFlip(p=0.5),
+        A.RandomBrightnessContrast(p=0.2),
+    ])
     preprocess = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-    input_tensor = preprocess(input_image)
+
+    aug_image = aug(image=input_image)['image']            # add augmentation
+    input_tensor = preprocess(aug_image)    # convert to tensor
+
     input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
     input_batch = input_batch.to(device)
 
@@ -74,16 +87,20 @@ with open(TRAIN+'/label.txt', newline='') as csvfile:
     train_rows = list(rows)
 
     for row in train_rows:
-        img_path = TRAIN+'/'+row[0]
-        input_batch = image_loader(img_path)
+        try:
+            img_path = TRAIN+'/'+row[0]
+            input_batch = image_loader(img_path)
 
-        # descriptor tensor 2048
-        desc_tensor = model(input_batch)
-        # output class tensor with 3097 classes
-        labels = torch.zeros([1, 3097], dtype=torch.float32, device=device)
-        labels[0][int(row[1])] = 1
+            # descriptor tensor 2048
+            desc_tensor = model(input_batch)
+            # output class tensor with 3097 classes
+            labels = torch.zeros([1, 3097], dtype=torch.float32, device=device)
+            labels[0][int(row[1])] = 1
 
-        train_data.append((desc_tensor, labels))
+            train_data.append((desc_tensor, labels))
+        except OSError as e:
+            print(e)
+            print('Bad image', row[0])
 print(datetime.datetime.now().time(), 'Training dataset created')
 
 # train network
