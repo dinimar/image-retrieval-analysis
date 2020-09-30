@@ -1,3 +1,4 @@
+import argparse
 import torchvision
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -99,9 +100,15 @@ def create_dataloader(csv_file, root_dir, num_classes=2):
 
 
 if __name__ == "__main__":
-    num_classes=2
-    csv_file='./mnist_sample/labels.csv'
-    root_dir='./mnist_sample'
+    parser = argparse.ArgumentParser(description='train loop for classification net.')
+    parser.add_argument('num_classes', type=int, help='a number of classes in dataset')
+    parser.add_argument('csv_file', type=str, help='path to csv file that contains dataset info in format:\n1.jpg,0\n2.jpg,1')
+    parser.add_argument('root_dir', type=str, help='path to root dir with dataset')
+    args = parser.parse_args()
+    
+    num_classes = args.num_classes
+    csv_file = args.csv_file
+    root_dir = args.root_dir
 
     train_loader, val_loader = create_dataloader(
         csv_file=csv_file,
