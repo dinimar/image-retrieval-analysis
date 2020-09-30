@@ -7,6 +7,8 @@ import torch
 import random
 import os
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 class ClassifierDataset(Dataset):
 
     def __init__(self, dataframe, root_dir, num_classes=2, transform=None, m_transformations=None):
