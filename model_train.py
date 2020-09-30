@@ -4,11 +4,6 @@ from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch
 import numpy as np
-from torchvision import transforms
-from dataset import ClassifierDataset
-
-from PIL import ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from dataset import create_dataloader
 
