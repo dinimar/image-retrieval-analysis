@@ -10,7 +10,7 @@ from dataset import ClassifierDataset
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-from dataset import ClassifierDataset
+from dataset import create_dataloader
 
 class FineTuneModel(nn.Module):
     def __init__(self, original_model, num_classes):
@@ -77,31 +77,6 @@ class Model:
             print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}')
             self.scheduler.step(val_loss)
         
-    
-def create_dataloader(csv_file, root_dir, num_classes=2):
-    transformations = transforms.Compose([
-        transforms.ColorJitter(brightness=(0, 1), contrast=(0, 1), saturation=0, hue=(-0.5, 0.5)),
-        transforms.RandomAffine((-10, 10), scale=(0.5 ,1)),
-        transforms.RandomVerticalFlip(p=0.5),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation((-10, 10)),
-        transforms.RandomErasing(p=0.15),
-        transforms.Resize(255),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-    train_data = ClassifierDataset(
-        csv_file=csv_file,
-        root_dir=root_dir,
-        num_classes=num_classes,
-        transform=transformations,
-    )
-    len_train_dataset = int(len(train_data) * 0.8)
-    train_set, val_set = torch.utils.data.random_split(train_data, [len_train_dataset, len(train_data)-len_train_dataset])
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(val_set, batch_size=8)
-    return train_loader, val_loader
 
 
 if __name__ == "__main__":
