@@ -5,6 +5,10 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch
 import numpy as np
 from torchvision import transforms
+from dataset import ClassifierDataset
+
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from dataset import ClassifierDataset
 
@@ -81,6 +85,7 @@ def create_dataloader(csv_file, root_dir, num_classes=2):
         transforms.RandomVerticalFlip(p=0.5),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation((-10, 10)),
+        transforms.RandomErasing(p=0.15),
         transforms.Resize(255),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
