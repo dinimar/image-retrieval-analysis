@@ -60,12 +60,12 @@ class ModelInterface:
         return np.argmax(one_hot, axis=1)
         
     def _compute_accuracy(self, pred, target):
-        pred, target = pred.detach().numpy(), target.detach().numpy()
+        pred, target = pred.cpu().detach().numpy(), target.cpu().detach().numpy()
         pred, target = self._one_hot2labels(pred), self._one_hot2labels(target)
         return accuracy_score(target, pred)
         
     def _compute_map(self, pred, target):
-        pred, target = pred.detach().numpy(), target.detach().numpy()
+        pred, target = pred.cpu().detach().numpy(), target.cpu().detach().numpy()
         return np.mean([average_precision_score(target[:, i], pred[:, i]) for i in range(len(pred[0]))])
     
     def _step(self, data_loader, is_train=False):
