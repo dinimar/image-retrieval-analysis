@@ -25,22 +25,6 @@ class FineTuneModel(nn.Module):
         y = self.classifier(f)
         return y
     
-
-class FineTuneModel(nn.Module):
-    def __init__(self, original_model, num_classes):
-        super(FineTuneModel, self).__init__()
-        self.features = nn.Sequential(*list(original_model.children())[:-1])
-        self.classifier = nn.Linear(2048, num_classes)
-        self.modelName = 'Resnet50'
-        for p in self.features.parameters():
-            p.requires_grad = False
-
-
-    def forward(self, x):
-        f = self.features(x)        
-        f = f.view(f.size(0), -1)
-        y = self.classifier(f)
-        return y
     
 class ModelInterface:
     def __init__(self, model, device='cuda:0'):
@@ -125,19 +109,16 @@ class ModelInterface:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train loop for classification net.')
-    parser.add_argument('num_classes', type=int, help='a number of classes in dataset')
     parser.add_argument('csv_file', type=str, help='path to csv file that contains dataset info in format:\n1.jpg,0\n2.jpg,1')
     parser.add_argument('root_dir', type=str, help='path to root dir with dataset')
     args = parser.parse_args()
     
-    num_classes = args.num_classes
     csv_file = args.csv_file
     root_dir = args.root_dir
 
-    train_loader, val_loader = create_dataloader(
+    train_loader, val_loader, num_classes = create_dataloader(
         csv_file=csv_file,
         root_dir=root_dir,
-        num_classes=num_classes
     )
     model = torchvision.models.resnext50_32x4d(pretrained=True)
     model= FineTuneModel(model, num_classes=num_classes)
