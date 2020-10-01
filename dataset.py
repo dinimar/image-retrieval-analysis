@@ -77,17 +77,24 @@ def train_val_split(df, split_ration):
 
 def create_dataloader(csv_file, root_dir, split_ration=0.8):
     aug = [
-        transforms.ColorJitter(brightness=(0, 1), contrast=(0, 1), saturation=0, hue=(-0.5, 0.5)),
+        transforms.ColorJitter(
+                brightness=(0.4, 1), 
+                contrast=(0.27, 1),
+                saturation=(0.35, 1),
+                hue=(-0.5, 0.5)),
         transforms.RandomAffine((-10, 10), scale=(0.5 ,1)),
         transforms.RandomVerticalFlip(p=0.5),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation((-10, 10)),
-        transforms.RandomErasing(p=0.15),
     ]
     transformations = [
         transforms.Resize(255),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
+        transforms.RandomErasing(
+                p=0.15, 
+                scale=(0.0065, 0.0585), 
+                ratio=(0.1, 6)),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
     train_transformations = transforms.Compose(aug + transformations)
