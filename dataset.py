@@ -66,7 +66,7 @@ def train_val_split(df, split_ration):
             train_indexes += samples_indexes
         else:
             random.shuffle(samples_indexes)
-            tr_ln = int(ln * proportions)
+            tr_ln = int(ln * split_ration)
             train_indexes += samples_indexes[:tr_ln]
             val_indexes += samples_indexes[tr_ln:]       
     return (
