@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torch import nn
 from PIL import Image
+from PIL import ImageFile
 import pandas as pd
 import torch
 import random
