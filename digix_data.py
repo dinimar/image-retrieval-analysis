@@ -15,14 +15,14 @@ def download_datasets(yaml_dir):
         data = yaml.safe_load(f)
         
         print("Started downloading from", data['train_data'])
-        wget.download(data['train_data'], data['train_data_path'], bar=bar_progress)
+        wget.download(data['train_data'], data['train_data_path'])
         print("Finished downloading\r")
         print("Started unzipping", data['train_data_path'])
         unzip(data['train_data_path'])
         print("Finished unzipping\r")
         
         print("Started downloading from", data['test_data'])
-        wget.download(data['test_data'], data['test_data_path'], bar=bar_progress)
+        wget.download(data['test_data'], data['test_data_path'])
         print("Finished downloading\r")
         
         print("Started unzipping", data['train_data_path'])
