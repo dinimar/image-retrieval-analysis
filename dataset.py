@@ -75,7 +75,7 @@ def train_val_split(df, split_ration):
         df.iloc[val_indexes].reset_index(drop=True)
            )
 
-def create_dataloader(csv_file, root_dir, num_classess, plit_ration=0.8):
+def create_dataloader(csv_file, root_dir, num_classes, split_ration=0.8):
     aug = [
         transforms.ColorJitter(
                 brightness=(0.4, 1), 
