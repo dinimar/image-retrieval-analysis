@@ -2,13 +2,12 @@ import yaml
 import wget
 import os
 import sys
+import zipfile
 
-# create this bar_progress method which is invoked automatically from wget
-def bar_progress(current, total, width=80):
-    progress_message = "Downloading: %d%% [%d / %d] bytes" % (current / total * 100, current, total)
-    # Don't use print() as it will print in new line every time.
-    sys.stdout.write("\r" + progress_message)
-    sys.stdout.flush()
+def unzip(file_path, dir_path='./'):
+    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        zip_ref.extractall(dir_path)
+
 
 
 def download_datasets(yaml_dir):
@@ -16,6 +15,17 @@ def download_datasets(yaml_dir):
         data = yaml.safe_load(f)
         
         print("Started downloading from", data['train_data'])
-        wget.download(data['train_data'], bar=bar_progress)
+        wget.download(data['train_data'], data['train_data_path'], bar=bar_progress)
+        print("Finished downloading\r")
+        print("Started unzipping", data['train_data_path'])
+        unzip(data['train_data_path'])
+        print("Finished unzipping\r")
+        
         print("Started downloading from", data['test_data'])
-        wget.download(data['test_data'], bar=bar_progress)
+        wget.download(data['test_data'], data['test_data_path'], bar=bar_progress)
+        print("Finished downloading\r")
+        
+        print("Started unzipping", data['train_data_path'])
+        unzip(data['test_data_path'])
+        print("Finished unzipping\r")
+        
