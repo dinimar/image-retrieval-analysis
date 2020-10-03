@@ -12,7 +12,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ClassifierDataset(Dataset):
 
-    def __init__(self, dataframe, root_dir, num_classes=2, transform=None, m_transformations=None):
+    def __init__(self, dataframe, root_dir, transform=None, m_transformations=None):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -20,10 +20,16 @@ class ClassifierDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
-        self.num_classes = num_classes
-        self.data = dataframe
         self.root_dir = root_dir
         self.transform = transform
+
+        # Fix class indexing
+        # Convert class sequence [0, 1, 3, .., n] to [0, 1, 2, .., num_classes-1]
+        coding_cls = { cl: i for i, cl in enumerate(dataframe.target.unique())}
+        dataframe.target = df.target.map(lambda x: coding_cls[x])
+
+        self.num_classes = max(dataframe.target)
+        self.data = dataframe
 
     def __len__(self):
         return len(self.data)
@@ -75,7 +81,7 @@ def train_val_split(df, split_ration):
         df.iloc[val_indexes].reset_index(drop=True)
            )
 
-def create_dataloader(csv_file, root_dir, num_classes, split_ration=0.8):
+def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     aug = [
         transforms.ColorJitter(
                 brightness=(0.4, 1), 
@@ -107,13 +113,11 @@ def create_dataloader(csv_file, root_dir, num_classes, split_ration=0.8):
     train_set = ClassifierDataset(
         dataframe=df_train,
         root_dir=root_dir,
-        num_classes=num_classes,
         transform=train_transformations,
     )
     val_set = ClassifierDataset(
         dataframe=df_val,
         root_dir=root_dir,
-        num_classes=num_classes,
         transform=val_transformations,
     )
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
