@@ -2,8 +2,6 @@ venv/
 
 .vscode/
 
-digix.yaml
-
 *.pyc
 *.zip
 
