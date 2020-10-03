@@ -1,0 +1,8 @@
+# Example of digix.yaml file
+# Remove .example in file name
+# Update links if needed
+train_data: https://digix-algo-challenge.obs.cn-east-2.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/train_data.zip
+train_data_path: ./train_data.zip
+
+test_data: https://digix-algo-challenge.obs.cn-east-2.myhuaweicloud.com/2020/cv/6rKDTsB6sX8A1O2DA2IAq7TgHPdSPxJF/test_data_B.zip
+test_data_path: ./test_data_B.zip
