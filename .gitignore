@@ -6,3 +6,6 @@ digix.yaml
 
 *.pyc
 *.zip
+
+*.out
+*.log
