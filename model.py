@@ -1,10 +1,29 @@
 import torchvision
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.tensorboard import SummaryWriter
 from sklearn.metrics import average_precision_score, accuracy_score
 import torch
 from PIL import Image
 import numpy as np
+
+class UnNormalize(object):
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+        Returns:
+            Tensor: Normalized image.
+        """
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.mul_(s).add_(m)
+            # The normalize code -> t.sub_(m).div_(s)
+        return tensor
+
 
 class FineTuneModel(nn.Module):
     def __init__(self, original_model, num_classes):
@@ -25,7 +44,13 @@ class FineTuneModel(nn.Module):
     
 class ModelInterface:
     def __init__(self, model, device='cuda:0'):
+        # Sets up a timestamped log directory.
+        # logdir = "logs/train_data/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        # Writer will output to ./runs/ directory by default
+        self.writer = SummaryWriter()
+        
         self.model = model.to(device)
+        self.unorm = UnNormalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
         self.device = device
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.05)
         self.criterion= nn.BCEWithLogitsLoss(reduction='mean')
@@ -53,13 +78,22 @@ class ModelInterface:
         losses = []
         mAP = []
         acc = []
+        step_num = 0
         for batch in data_loader:
-            img, labels = batch.values()
-            img, labels= (
-                img.to(self.device),
+            imgs, labels = batch.values()
+            imgs, labels= (
+                imgs.to(self.device),
                 labels.to(self.device),
             )
-            model_out = self.model.forward(img)
+
+            # Print images in TensorBoard
+            img_batch = imgs
+            for x in range(len(img_batch)):
+                img_batch[x] = self.unorm(img_batch[x])
+            self.writer.add_images('image_batch', img_batch, step_num)
+            step_num = step_num + 1
+
+            model_out = self.model.forward(imgs)
             self._compute_accuracy(model_out, labels)
             loss = self.criterion(model_out, labels.type_as(model_out))
             losses.append(loss.item())
@@ -75,23 +109,33 @@ class ModelInterface:
         else: return np.mean(losses), np.mean(mAP), np.mean(acc)
     
     
-    def train(self, train_dataloader, val_dataloader, save_folder='./checkpoints/', num_epochs=240):
-        best_loss = 100
-        for epoch in range(num_epochs):
-            self.model.train()
-            train_loss = self._step(
-                train_dataloader,
-                is_train=True,
-            )
-            with torch.no_grad():
-                val_loss, mAP, acc = self._step(
-                    val_dataloader,
+    def train(self, train_dataloader, val_dataloader, save_folder='./checkpoints/', num_epochs=3):
+        try:
+            best_loss = 100
+            for epoch in range(num_epochs):
+                self.model.train()
+                train_loss = self._step(
+                    train_dataloader,
+                    is_train=True,
                 )
-            if val_loss < best_loss:
-                best_loss = val_loss
-                torch.save(self.model, 'classifer.pth')
-            print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}, val_map: {mAP}, val_acc: {acc}')
-            self.scheduler.step(val_loss)
+                with torch.no_grad():
+                    val_loss, mAP, acc = self._step(
+                        val_dataloader,
+                    )
+                if val_loss < best_loss:
+                    best_loss = val_loss
+                    torch.save(self.model, 'classifer.pth')
+
+                writer.add_scalar('Loss/train', train_loss, epoch)
+                writer.add_scalar('Loss/val', val_loss, epoch)
+                writer.add_scalar('mAP/val', mAP, epoch)
+                writer.add_scalar('Accuracy/val', acc, epoch)
+
+                print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}, val_map: {mAP}, val_acc: {acc}')
+                self.scheduler.step(val_loss)
+        finally:
+            # Save results
+            self.writer.close()
             
     def predict(self, filepath, base_transforms):
         image = Image.open(filepath).convert('RGB')

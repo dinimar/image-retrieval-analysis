@@ -26,7 +26,7 @@ class ClassifierDataset(Dataset):
         # Fix class indexing
         # Convert class sequence [0, 1, 3, .., n] to [0, 1, 2, .., num_classes-1]
         coding_cls = { cl: i for i, cl in enumerate(dataframe.target.unique())}
-        dataframe.target = df.target.map(lambda x: coding_cls[x])
+        dataframe.target = dataframe.target.map(lambda x: coding_cls[x])
 
         self.num_classes = max(dataframe.target)
         self.data = dataframe
@@ -108,7 +108,7 @@ def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     
     df = pd.read_csv(csv_file, names=['filename', 'target'])[:-1]
     df.target = df.target.map(int)
-    df_train, df_val = train_val_split(df, split_ration)
+    df_train, df_val = train_val_split(df, split_ratio)
     
     train_set = ClassifierDataset(
         dataframe=df_train,
@@ -122,4 +122,6 @@ def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     )
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=8)
-    return train_loader, val_loader
+    num_classes = train_set.num_classes
+
+    return train_loader, val_loader, num_classes
