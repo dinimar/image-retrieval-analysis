@@ -118,7 +118,7 @@ class ModelInterface:
                     train_dataloader,
                     is_train=True,
                 )
-                 with torch.no_grad():
+                with torch.no_grad():
                     val_loss, mAP, acc = self._step(
                         val_dataloader,
                     )
