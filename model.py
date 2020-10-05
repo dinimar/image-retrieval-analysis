@@ -118,7 +118,7 @@ class ModelInterface:
                     train_dataloader,
                     is_train=True,
                 )
-                with torch.no_grad():
+                 with torch.no_grad():
                     val_loss, mAP, acc = self._step(
                         val_dataloader,
                     )
@@ -126,10 +126,10 @@ class ModelInterface:
                     best_loss = val_loss
                     torch.save(self.model, 'classifer.pth')
 
-                writer.add_scalar('Loss/train', train_loss, epoch)
-                writer.add_scalar('Loss/val', val_loss, epoch)
-                writer.add_scalar('mAP/val', mAP, epoch)
-                writer.add_scalar('Accuracy/val', acc, epoch)
+                self.writer.add_scalar('Loss/train', train_loss, epoch)
+                self.writer.add_scalar('Loss/val', val_loss, epoch)
+                self.writer.add_scalar('mAP/val', mAP, epoch)
+                self.writer.add_scalar('Accuracy/val', acc, epoch)
 
                 print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}, val_map: {mAP}, val_acc: {acc}')
                 self.scheduler.step(val_loss)

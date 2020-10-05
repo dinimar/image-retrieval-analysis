@@ -12,7 +12,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ClassifierDataset(Dataset):
 
-    def __init__(self, dataframe, root_dir, transform=None, m_transformations=None):
+    def __init__(self, dataframe, root_dir, num_classes, transform=None):
         """
         Args:
             csv_file (string): Path to the csv file with annotations.
@@ -22,13 +22,7 @@ class ClassifierDataset(Dataset):
         """
         self.root_dir = root_dir
         self.transform = transform
-
-        # Fix class indexing
-        # Convert class sequence [0, 1, 3, .., n] to [0, 1, 2, .., num_classes-1]
-        coding_cls = { cl: i for i, cl in enumerate(dataframe.target.unique())}
-        dataframe.target = dataframe.target.map(lambda x: coding_cls[x])
-
-        self.num_classes = max(dataframe.target)
+        self.num_classes = num_classes
         self.data = dataframe
 
     def __len__(self):
@@ -61,6 +55,7 @@ class ClassifierDataset(Dataset):
                 sample['image'] = transform(sample['image'])
         return sample
 
+
 def train_val_split(df, split_ration):
     count_target = {}
     train_indexes = []
@@ -80,6 +75,18 @@ def train_val_split(df, split_ration):
         df.iloc[train_indexes].reset_index(drop=True),
         df.iloc[val_indexes].reset_index(drop=True)
            )
+
+
+# fixes class indexing
+# returns fixed df and num_classes
+def fix_df(df):
+    # Convert class sequence [0, 1, 3, .., n] to [0, 1, 2, .., num_classes-1]
+    coding_cls = { cl: i for i, cl in enumerate(df.target.unique())}
+    df.target = df.target.map(lambda x: coding_cls[x])
+    num_classes = max(df.target) + 1
+    
+    return df, num_classes
+
 
 def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     aug = [
@@ -108,20 +115,23 @@ def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     
     df = pd.read_csv(csv_file, names=['filename', 'target'])[:-1]
     df.target = df.target.map(int)
+    # Fix dataframe before split to prevent class inconsistency
+    df, num_classes = fix_df(df)
     df_train, df_val = train_val_split(df, split_ratio)
     
     train_set = ClassifierDataset(
         dataframe=df_train,
         root_dir=root_dir,
+        num_classes=num_classes,
         transform=train_transformations,
     )
     val_set = ClassifierDataset(
         dataframe=df_val,
         root_dir=root_dir,
+        num_classes=num_classes,
         transform=val_transformations,
     )
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=8)
-    num_classes = train_set.num_classes
 
     return train_loader, val_loader, num_classes
