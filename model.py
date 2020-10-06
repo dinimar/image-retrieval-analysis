@@ -87,11 +87,13 @@ class ModelInterface:
             )
 
             # Print images in TensorBoard
-            img_batch = imgs
-            for x in range(len(img_batch)):
-                img_batch[x] = self.unorm(img_batch[x])
-            self.writer.add_images('image_batch', img_batch, step_num)
-            step_num = step_num + 1
+            if (step_num % 100 == 0)
+                img_batch = imgs
+                for x in range(len(img_batch)):
+                    img_batch[x] = self.unorm(img_batch[x])
+                self.writer.add_images('image_batch', img_batch, step_num)
+                self.writer.close()
+                step_num = step_num + 1
 
             model_out = self.model.forward(imgs)
             self._compute_accuracy(model_out, labels)
@@ -126,10 +128,12 @@ class ModelInterface:
                     best_loss = val_loss
                     torch.save(self.model, 'classifer.pth')
 
+                # Add metrics to tensorboard 
                 self.writer.add_scalar('Loss/train', train_loss, epoch)
                 self.writer.add_scalar('Loss/val', val_loss, epoch)
                 self.writer.add_scalar('mAP/val', mAP, epoch)
                 self.writer.add_scalar('Accuracy/val', acc, epoch)
+                self.writer.close()
 
                 print(f'epoch: {epoch}, train_loss: {train_loss}, val_loss: {val_loss}, val_map: {mAP}, val_acc: {acc}')
                 self.scheduler.step(val_loss)

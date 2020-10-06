@@ -86,8 +86,8 @@ def fix_df(df):
     
     return df, num_classes
 
-
-def create_dataloader(csv_file, root_dir, split_ratio=0.8):
+# top_num_classes - number of classes to subset dataset
+def create_dataloader(csv_file, root_dir, top_num_classes=0, split_ratio=0.8):
     aug = [
         transforms.ColorJitter(
                 brightness=(0.4, 1), 
@@ -115,9 +115,15 @@ def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     df = pd.read_csv(csv_file, names=['filename', 'target'])[:-1]
     df.target = df.target.map(int)
     # Fix dataframe before split to prevent class inconsistency
+    df, num_classes = fix_df(df)
+
+    # Return top n classes by number of samples
+    if top_num_classes != 0:
+        count_targets = df.groupby('target').count().sort_values(by=['filename'], ascending=False)
+        targets = count_targets[:num_classes].reset_index()["target"].to_list()
+        df = df.loc[df.target.isin(targets)]
+    
     df_train, df_val = train_val_split(df, split_ratio)
-    df_train, num_classes = fix_df(df_train)
-    df_val, _ = fix_df(df_val)
     
     train_set = ClassifierDataset(
         dataframe=df_train,
