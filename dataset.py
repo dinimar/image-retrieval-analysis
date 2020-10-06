@@ -64,8 +64,8 @@ def train_val_split(df, split_ration):
         samples = df[df.target == target]
         ln = len(samples)
         samples_indexes = list(samples.index)
-        if ln < 10:
-            train_indexes += samples_indexes
+        if ln < 25:
+            continue
         else:
             random.shuffle(samples_indexes)
             tr_ln = int(ln * split_ration)
@@ -116,8 +116,9 @@ def create_dataloader(csv_file, root_dir, split_ratio=0.8):
     df = pd.read_csv(csv_file, names=['filename', 'target'])[:-1]
     df.target = df.target.map(int)
     # Fix dataframe before split to prevent class inconsistency
-    df, num_classes = fix_df(df)
     df_train, df_val = train_val_split(df, split_ratio)
+    df_train, num_classes = fix_df(df_train)
+    df_val, _ = fix_df(df_val)
     
     train_set = ClassifierDataset(
         dataframe=df_train,
