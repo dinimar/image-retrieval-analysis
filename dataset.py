@@ -120,7 +120,7 @@ def create_dataloader(csv_file, root_dir, top_num_classes=0, num_samples=0, spli
     # Return top n classes by number of samples
     if top_num_classes != 0:
         count_targets = df.groupby('target').count().sort_values(by=['filename'], ascending=False)
-        targets = count_targets[:num_classes].reset_index()['target'].to_list()
+        targets = count_targets[:top_num_classes].reset_index()['target'].to_list()
         df = df.loc[df.target.isin(targets)]
         # Get n samples per class
         if num_samples != 0:
