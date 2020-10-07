@@ -87,13 +87,13 @@ class ModelInterface:
             )
 
             # Print images in TensorBoard
-            if (step_num % 100 == 0)
+            if (step_num % 100 == 0):
                 img_batch = imgs
                 for x in range(len(img_batch)):
                     img_batch[x] = self.unorm(img_batch[x])
                 self.writer.add_images('image_batch', img_batch, step_num)
                 self.writer.close()
-                step_num = step_num + 1
+            step_num = step_num + 1
 
             model_out = self.model.forward(imgs)
             self._compute_accuracy(model_out, labels)
@@ -140,7 +140,8 @@ class ModelInterface:
         finally:
             # Save results
             self.writer.close()
-            
+
+
     def predict(self, filepath, base_transforms):
         image = Image.open(filepath).convert('RGB')
         image = base_transforms(image)

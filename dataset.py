@@ -5,7 +5,7 @@ from PIL import Image
 from PIL import ImageFile
 import pandas as pd
 import torch
-from random import random
+import random
 import os
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -46,7 +46,7 @@ class ClassifierDataset(Dataset):
         cls = int(cls)
         label = self.one_hot_encoder(cls)
         sample = {'image': image, 'landmarks': label}
-        if self.augmentation and random() < self.p_augmentation:
+        if self.augmentation and random.random() < self.p_augmentation:
             try:
                 sample['image'] = self.augmentation(sample['image'])
             except: pass
